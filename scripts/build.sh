@@ -67,16 +67,15 @@ curl -fL --retry 3 --output "$ZIP_PATH" "$UPSTREAM_URL"
 echo "Extracting upstream archive"
 unzip -q "$ZIP_PATH" -d "$EXTRACT_DIR"
 
-shopt -s nullglob
-source_dirs=("$EXTRACT_DIR"/*/)
-shopt -u nullglob
+shopt -s nullglob dotglob
+root_entries=("$EXTRACT_DIR"/*)
+shopt -u nullglob dotglob
 
-if [ "${#source_dirs[@]}" -ne 1 ]; then
-  echo >&2 "Expected exactly one top-level directory in upstream zip"
-  exit 1
+if [ "${#root_entries[@]}" -eq 1 ] && [ -d "${root_entries[0]}" ]; then
+  SOURCE_DIR="${root_entries[0]%/}"
+else
+  SOURCE_DIR="$EXTRACT_DIR"
 fi
-
-SOURCE_DIR="${source_dirs[0]%/}"
 
 cp -R "$SOURCE_DIR"/. "$PACKAGE_DIR"/
 cp "$ROOT_DIR/wrapper/kotlin-lsp-termux.sh" "$PACKAGE_DIR/kotlin-lsp-termux.sh"
