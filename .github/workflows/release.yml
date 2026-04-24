@@ -1,0 +1,38 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Upstream JetBrains Kotlin LSP version
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install packaging dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf unzip
+
+      - name: Build Termux package
+        run: bash ./scripts/build.sh --version "${{ inputs.version }}"
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: termux-v${{ inputs.version }}
+          name: Kotlin LSP ${{ inputs.version }} for Termux
+          files: |
+            dist/*.tar.gz
+            dist/*.sha256
+          overwrite_files: true
+          generate_release_notes: false
